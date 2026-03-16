@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import AuthGuard from "@/app/components/AuthGuard";
-import StudentLayout from "@/app/components/StudentLayout";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,21 +40,51 @@ export default function CreateProject() {
   }
 
   async function submit() {
+    // Client-side validations
+    if (!form.group_name.trim()) { alert("Group name is required."); return; }
+    if (!form.project_title.trim()) { alert("Project title is required."); return; }
+    if (!form.project_type_id) { alert("Please select a project type."); return; }
+
+    if (form.members.length > 0) {
+      // Check for empty student IDs
+      const emptyIds = form.members.some((m: any) => !m.student_id || !String(m.student_id).trim());
+      if (emptyIds) { alert("All member fields must have a Student ID."); return; }
+
+      // Check for duplicate student IDs
+      const ids = form.members.map((m: any) => String(m.student_id).trim());
+      const uniqueIds = new Set(ids);
+      if (uniqueIds.size !== ids.length) { alert("Duplicate student IDs found. Each student can only be added once."); return; }
+
+      // Check for multiple leaders
+      const leaderCount = form.members.filter((m: any) => m.is_leader === 1).length;
+      if (leaderCount > 1) { alert("Only one leader is allowed per group."); return; }
+    }
+
     setLoading(true);
-    await fetch("/api/project-group", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+    try {
+      const res = await fetch("/api/project-group", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Failed to create project group.");
+        setLoading(false);
+        return;
+      }
+      alert("Project Group Created!");
+      window.location.href = "/dashboard/student";
+    } catch {
+      alert("Something went wrong. Please try again.");
+    }
     setLoading(false);
-    alert("Project Group Created");
-    window.location.href = "/dashboard/student";
   }
 
   return (
     <AuthGuard>
-      <StudentLayout>
-        <div className="flex items-center justify-between mb-8">
+      <div className="flex-1 space-y-4 p-8 pt-6">
+        <div className="flex items-center justify-between space-y-2">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">New Project</h2>
             <p className="text-muted-foreground">Register your project group and topic.</p>
@@ -126,38 +156,46 @@ export default function CreateProject() {
                 </div>
 
                 <div className="space-y-4">
-                  {form.members.map((m: any, i: number) => (
-                    <div key={i} className="flex items-end gap-4 p-4 border rounded-lg bg-muted/20">
+                  {form.members.map((m: any, i: number) => {
+                    const hasLeader = form.members.some((mem: any, idx: number) => idx !== i && mem.is_leader === 1);
+                    const isDuplicate = m.student_id && form.members.some((mem: any, idx: number) => idx !== i && String(mem.student_id).trim() === String(m.student_id).trim() && mem.student_id);
+                    return (
+                    <div key={i} className={`flex items-end gap-4 p-4 border rounded-lg bg-muted/20 ${isDuplicate ? 'border-destructive' : ''}`}>
                       <div className="flex-1 space-y-2">
-                        <Label>Student ID</Label>
+                        <Label>Student ID {isDuplicate && <span className="text-destructive text-xs ml-1">(Duplicate!)</span>}</Label>
                         <Input
-                          placeholder="e.g. STU-101"
+                          placeholder="e.g. 1001"
+                          value={m.student_id}
                           onChange={(e) => {
                             const members = [...form.members];
                             members[i].student_id = e.target.value;
                             setForm({ ...form, members });
                           }}
+                          className={isDuplicate ? 'border-destructive focus-visible:ring-destructive' : ''}
                         />
                       </div>
                       <div className="flex items-center h-10 pb-2">
-                        <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                        <label className={`flex items-center gap-2 text-sm font-medium ${hasLeader && !m.is_leader ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
                           <input
                             type="checkbox"
                             className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            checked={m.is_leader === 1}
+                            disabled={hasLeader && !m.is_leader}
                             onChange={(e) => {
                               const members = [...form.members];
                               members[i].is_leader = e.target.checked ? 1 : 0;
                               setForm({ ...form, members });
                             }}
                           />
-                          Is Leader?
+                          Leader {hasLeader && !m.is_leader && <span className="text-xs text-muted-foreground">(taken)</span>}
                         </label>
                       </div>
                       <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive/90" onClick={() => removeMember(i)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  ))}
+                    );
+                  })}
                   {form.members.length === 0 && (
                     <p className="text-sm text-muted-foreground text-center py-4 italic">
                       No members added yet. Click "Add Member" to begin.
@@ -167,7 +205,7 @@ export default function CreateProject() {
               </div>
 
               <div className="flex justify-end pt-4">
-                <Button onClick={submit} size="lg" disabled={loading} className="bg-cyan-600 hover:bg-cyan-700">
+                <Button onClick={submit} size="lg" disabled={loading} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
                   {loading ? "Submitting..." : "Submit Project Proposal"}
                 </Button>
               </div>
@@ -175,7 +213,7 @@ export default function CreateProject() {
             </CardContent>
           </Card>
         </div>
-      </StudentLayout>
+      </div>
     </AuthGuard>
   );
 }

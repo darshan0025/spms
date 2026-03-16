@@ -19,7 +19,7 @@ export function StatsCard({ title, value, description, icon: Icon, trend }: Stat
             <CardContent>
                 <div className="text-2xl font-bold">{value}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                    {description} {trend && <span className="text-green-500 font-medium ml-1">{trend}</span>}
+                    {description} {trend && <span className="text-foreground font-semibold ml-1">{trend}</span>}
                 </p>
             </CardContent>
         </Card>

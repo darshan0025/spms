@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import AuthGuard from "@/app/components/AuthGuard";
-import StaffLayout from "@/app/components/StaffLayout";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -20,10 +20,18 @@ export default function StaffProjects() {
   const [loading, setLoading] = useState(false);
 
   async function load() {
-    try {
-      const res = await fetch("/api/staff/projects");
-      if (res.ok) setProjects(await res.json());
-    } catch (e) { }
+    setLoading(true);
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        const res = await fetch(`/api/staff/projects?staff_id=${user.staff_id}`);
+        if (res.ok) setProjects(await res.json());
+      } catch (e) {
+        console.error("Failed to load projects", e);
+      }
+    }
+    setLoading(false);
   }
 
   async function updateStatus(id: number, status: string) {
@@ -43,8 +51,8 @@ export default function StaffProjects() {
 
   return (
     <AuthGuard>
-      <StaffLayout>
-        <div className="flex items-center justify-between mb-8">
+      <div className="flex-1 space-y-4 p-8 pt-6">
+        <div className="flex items-center justify-between space-y-2">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Project Approvals</h2>
             <p className="text-muted-foreground">Review and approve student project proposals.</p>
@@ -88,7 +96,7 @@ export default function StaffProjects() {
                           <Button
                             size="sm"
                             onClick={() => updateStatus(p.project_group_id, "APPROVED")}
-                            className="bg-green-600 hover:bg-green-700"
+                            className="bg-zinc-800 hover:bg-zinc-900 text-white dark:bg-zinc-200 dark:hover:bg-zinc-300 dark:text-black"
                           >
                             <Check className="mr-1 h-4 w-4" /> Approve
                           </Button>
@@ -110,7 +118,7 @@ export default function StaffProjects() {
             </Table>
           </CardContent>
         </Card>
-      </StaffLayout>
+      </div>
     </AuthGuard>
   );
 }

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, LogIn } from "lucide-react";
+import Link from "next/link";
+import { Loader2, LogIn, Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +24,8 @@ export default function Login() {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("Student"); // Default role
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -33,21 +36,33 @@ export default function Login() {
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, role }), // Send selected role
       });
 
       if (!res.ok) {
-        setError("Invalid username or password");
+        const errorData = await res.json();
+        setError(errorData.error || "Invalid username or password");
         setLoading(false);
         return;
       }
 
-      const user = await res.json();
+      const data = await res.json();
 
-      // ✅ SAVE LOGIN SESSION
-      localStorage.setItem("user", JSON.stringify(user));
+      // Store basic user info for UI (greeting/role), but NOT sensitive auth tokens
+      // Auth is now handled by HttpOnly cookie
+      // Store basic user info for UI
+      localStorage.setItem("user", JSON.stringify(data.user));
 
-      router.push(`/dashboard/${user.role.toLowerCase()}`);
+      console.log("Login successful, redirecting to:", data.user.role);
+
+      console.log("Login successful, redirecting to:", data.user.role);
+
+      // Seamless navigation using Next.js router
+      router.refresh(); // Update server components
+      router.push(`/dashboard/${data.user.role.toLowerCase()}`);
+
+      // Stop loading
+      setLoading(false);
     } catch (err) {
       setError("Something went wrong. Please try again.");
       setLoading(false);
@@ -56,10 +71,11 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-muted/40 p-4 relative overflow-hidden">
-      {/* Background Gradients */}
-      <div className="absolute inset-0 -z-10 h-full w-full bg-white dark:bg-black">
-        <div className="absolute top-0 right-0 -z-10 h-[600px] w-[600px] rounded-full bg-purple-500/20 blur-[120px]" />
-        <div className="absolute bottom-0 left-0 -z-10 h-[500px] w-[500px] rounded-full bg-blue-500/20 blur-[100px]" />
+      {/* Background Gradients - Replaced with monochrome */}
+      <div className="absolute inset-0 -z-10 h-full w-full bg-white dark:bg-black flex items-center justify-center">
+        <div className="absolute top-0 right-0 -z-10 h-[600px] w-[600px] rounded-full bg-black/5 dark:bg-white/5 blur-[120px]" />
+        <div className="absolute bottom-0 left-0 -z-10 h-[500px] w-[500px] rounded-full bg-black/5 dark:bg-white/5 blur-[100px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px]"></div>
       </div>
 
       <Card className="w-full max-w-sm shadow-2xl bg-white/70 backdrop-blur-xl border-white/20 dark:bg-black/70 dark:border-white/10 ring-1 ring-black/5 dark:ring-white/5">
@@ -75,6 +91,34 @@ export default function Login() {
               {error}
             </div>
           )}
+
+          <div className="grid grid-cols-3 gap-2 mb-6">
+            <Button
+              type="button"
+              variant={role === "Admin" ? "default" : "outline"}
+              onClick={() => setRole("Admin")}
+              className="w-full"
+            >
+              Admin
+            </Button>
+            <Button
+              type="button"
+              variant={role === "Staff" ? "default" : "outline"}
+              onClick={() => setRole("Staff")}
+              className="w-full"
+            >
+              Staff
+            </Button>
+            <Button
+              type="button"
+              variant={role === "Student" ? "default" : "outline"}
+              onClick={() => setRole("Student")}
+              className="w-full"
+            >
+              Student
+            </Button>
+          </div>
+
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
@@ -90,16 +134,27 @@ export default function Login() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-                required
-                className="bg-white/50 dark:bg-black/50 border-black/10 dark:border-white/10 focus-visible:ring-offset-0"
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                  required
+                  className="bg-white/50 dark:bg-black/50 border-black/10 dark:border-white/10 focus-visible:ring-offset-0"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3 text-muted-foreground hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
             </div>
             <Button className="w-full transition-all hover:scale-[1.02] shadow-lg" type="submit" disabled={loading}>
               {loading ? (
@@ -117,6 +172,10 @@ export default function Login() {
           </form>
         </CardContent>
         <CardFooter className="flex justify-center flex-col gap-2">
+          <p className="text-sm text-muted-foreground text-center">
+            Don&apos;t have an account?{" "}
+            <Link href="/register" className="font-medium text-primary hover:underline">Register as Student</Link>
+          </p>
           <p className="text-xs text-muted-foreground text-center">
             Protected by enterprise-grade security.
           </p>

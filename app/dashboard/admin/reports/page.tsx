@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AuthGuard from "@/app/components/AuthGuard";
-import AdminLayout from "@/app/components/AdminLayout";
+
 import {
   Table,
   TableBody,
@@ -33,8 +33,8 @@ export default function ReportsPage() {
 
   return (
     <AuthGuard>
-      <AdminLayout>
-        <div className="flex items-center justify-between mb-6">
+      <div className="flex-1 space-y-4 p-8 pt-6">
+        <div className="flex items-center justify-between space-y-2">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">System Reports</h2>
             <p className="text-muted-foreground">Comprehensive overview of projects, groups, and members.</p>
@@ -137,8 +137,7 @@ export default function ReportsPage() {
             </Table>
           </CardContent>
         </Card>
-
-      </AdminLayout>
+      </div>
     </AuthGuard>
   );
 }

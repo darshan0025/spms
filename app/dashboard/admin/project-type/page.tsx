@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import AuthGuard from "@/app/components/AuthGuard";
-import AdminLayout from "@/app/components/AdminLayout";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -74,8 +74,8 @@ export default function ProjectTypePage() {
 
   return (
     <AuthGuard>
-      <AdminLayout>
-        <div className="flex items-center justify-between mb-6">
+      <div className="flex-1 space-y-4 p-8 pt-6">
+        <div className="flex items-center justify-between space-y-2">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Project Types</h2>
             <p className="text-muted-foreground">Manage the definition of project categories.</p>
@@ -188,7 +188,7 @@ export default function ProjectTypePage() {
             </CardContent>
           </Card>
         </div>
-      </AdminLayout>
+      </div>
     </AuthGuard>
   );
 }
