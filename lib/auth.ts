@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 
-const secretKey = new TextEncoder().encode("secret-key-change-me"); // Ideally use process.env.JWT_SECRET
+const secretKey = new TextEncoder().encode(process.env.JWT_SECRET || "secret-key-change-me");
 
 export async function signJWT(payload: any, expiresIn: string = "24h") {
     return new SignJWT(payload)

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifyJWT } from "@/lib/auth";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // Define protected routes
@@ -35,7 +35,7 @@ export async function middleware(request: NextRequest) {
 
         // Student trying to access non-student routes
         if (role === "student" && !currentPath.startsWith("/dashboard/student")) {
-            return NextResponse.redirect(new URL("/login", request.url));
+            return NextResponse.redirect(new URL("/login?reason=student_logout", request.url));
         }
     }
 

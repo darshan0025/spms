@@ -288,7 +288,7 @@ export default function AdminDashboard() {
                             outerRadius={100}
                             paddingAngle={4}
                             dataKey="value"
-                            label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                            label={({ name, percent }) => `${name} (${((percent || 0) * 100).toFixed(0)}%)`}
                           >
                             {statusPieData.map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name] || COLORS[index % COLORS.length]} />
