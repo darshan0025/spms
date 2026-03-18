@@ -86,8 +86,8 @@ export async function POST(req: Request) {
     // Set HTTP-Only Cookie
     response.cookies.set("token", token, {
       httpOnly: true,
-      secure: false, // Force false for localhost debugging
-      sameSite: "lax", // Relax strictness for redirect compatibility
+      secure: process.env.NODE_ENV === "production", // true on Vercel (HTTPS), false on localhost
+      sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24, // 1 day
     });
