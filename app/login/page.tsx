@@ -201,9 +201,6 @@ function LoginForm() {
             Don&apos;t have an account?{" "}
             <Link href="/register" className="font-medium text-primary hover:underline">Register as Student</Link>
           </p>
-          <p className="text-xs text-muted-foreground text-center">
-            Protected by enterprise-grade security.
-          </p>
         </CardFooter>
       </Card>
 
