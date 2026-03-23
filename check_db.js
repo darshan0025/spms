@@ -21,8 +21,12 @@ async function checkColumns() {
 
     try {
         await client.connect();
-        
-        const tables = ['staff', 'student', 'project_group_member'];
+
+        const tablesRes = await client.query(
+            "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
+        );
+        const tables = tablesRes.rows.map(t => t.table_name);
+
         for (const table of tables) {
             const res = await client.query(
                 "SELECT column_name FROM information_schema.columns WHERE table_name = $1",
