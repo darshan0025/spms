@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   const { project_type_name, description } = await req.json();
 
   await db.query(
-    "INSERT INTO project_type (project_type_name, description) VALUES (?, ?)",
+    "INSERT INTO project_type (project_type_name, description) VALUES (?, ?) RETURNING project_type_id",
     [project_type_name, description || ""]
   );
 

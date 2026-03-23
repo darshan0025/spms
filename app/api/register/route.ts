@@ -40,12 +40,11 @@ export async function POST(req: Request) {
             await connection.beginTransaction();
 
             // 1. Insert into student table
-            const [studentResult]: any = await connection.query(
-                `INSERT INTO student (student_name, email, phone_no, department_id, academic_year_id) 
-                 VALUES (?, ?, ?, ?, ?)`,
-                [student_name, email, phone_no || null, department_id || null, academic_year_id || null]
+            const [result]: any = await connection.query(
+            "INSERT INTO student (student_name, email, phone, department_id, academic_year_id) VALUES (?, ?, ?, ?, ?) RETURNING student_id",
+            [student_name, email, phone_no, department_id, academic_year_id]
             );
-            const studentId = studentResult.insertId;
+            const studentId = result.insertId;
 
             // 2. Hash password
             const hashedPassword = await bcrypt.hash(password, 10);

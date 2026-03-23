@@ -53,18 +53,14 @@ export async function POST(req: Request) {
         await db.query("DELETE FROM meeting_attendance WHERE meeting_id = ?", [meeting_id]);
 
         if (attendance_records.length > 0) {
-            const values = attendance_records.map((r: any) => [
-                meeting_id,
-                r.student_id,
-                r.is_present ? 1 : 0,
-                r.remarks || null
-            ]);
-
-            // bulk insert
-            await db.query(
-                `INSERT INTO meeting_attendance (meeting_id, student_id, is_present, remarks) VALUES ?`,
-                [values]
-            );
+            for (const r of attendance_records) {
+                await db.query(
+                    `INSERT INTO meeting_attendance (meeting_id, student_id, is_present, remarks) 
+                     VALUES (?, ?, ?, ?)
+                     ON CONFLICT (meeting_id, student_id) DO UPDATE SET is_present = EXCLUDED.is_present, remarks = EXCLUDED.remarks`,
+                    [meeting_id, r.student_id, !!r.is_present, r.remarks || null]
+                );
+            }
         }
 
         return NextResponse.json({ message: "Attendance saved successfully" });

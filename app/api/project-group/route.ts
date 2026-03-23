@@ -106,7 +106,7 @@ export async function POST(req: Request) {
     const [result]: any = await connection.query(
       `INSERT INTO project_group 
             (group_name, project_title, project_area, project_description, project_type_id, convener_staff_id, expert_staff_id, department_id, status) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING project_group_id`,
       [
         group_name || null,
         project_title || null,
@@ -126,8 +126,8 @@ export async function POST(req: Request) {
       for (const member of members) {
         if (member.student_id) {
           await connection.query(
-            `INSERT INTO project_group_member (project_group_id, student_id, is_leader) VALUES (?, ?, ?)`,
-            [newGroupId, member.student_id, member.is_leader ? 1 : 0]
+            `INSERT INTO project_group_member (project_group_id, student_id, is_leader) VALUES (?, ?, ?) RETURNING group_member_id`,
+            [newGroupId, member.student_id, member.is_leader ? true : false]
           );
         }
       }
@@ -200,9 +200,10 @@ export async function DELETE(req: Request) {
 
     // Delete meeting attendance records (child of project_meeting)
     await connection.query(
-      `DELETE ma FROM meeting_attendance ma 
-       INNER JOIN project_meeting pm ON ma.meeting_id = pm.meeting_id 
-       WHERE pm.project_group_id = ?`, [id]
+      `DELETE FROM meeting_attendance 
+       USING project_meeting 
+       WHERE meeting_attendance.meeting_id = project_meeting.meeting_id 
+       AND project_meeting.project_group_id = ?`, [id]
     );
 
     // Delete related child records in order

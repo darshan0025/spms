@@ -1,30 +1,44 @@
-const mysql = require('mysql2/promise');
+const { Client } = require('pg');
+const fs = require('fs');
+const path = require('path');
 
-const dbConfig = {
-  host: "127.0.0.1",
-  user: "root",
-  password: "darshan12*123",
-  database: "spms_db",
-};
+// Basic .env.local parser
+const envPath = path.resolve(__dirname, '.env.local');
+const envData = fs.readFileSync(envPath, 'utf8');
+const databaseUrlMatch = envData.match(/^DATABASE_URL=(.*)$/m);
+const databaseUrl = databaseUrlMatch ? databaseUrlMatch[1].trim() : null;
 
 async function testConnection() {
-  let connection;
+  if (!databaseUrl) {
+    console.error("DATABASE_URL not found in .env.local");
+    return;
+  }
+
+  const client = new Client({
+    connectionString: databaseUrl,
+    ssl: { rejectUnauthorized: false }
+  });
+
   try {
-    connection = await mysql.createConnection(dbConfig);
-    console.log("Connection successful!");
+    await client.connect();
+    console.log("Connection to Neon successful!");
     
     // Check if tables exist
-    const [tables] = await connection.query("SHOW TABLES");
-    console.log("Tables in database:", tables.map(t => Object.values(t)[0]));
+    const res = await client.query(
+        "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
+    );
+    console.log("Tables in database:", res.rows.map(t => t.table_name));
     
     // Check student table columns
-    const [studentCols] = await connection.query("SHOW COLUMNS FROM student");
-    console.log("Student columns:", studentCols.map(c => c.Field));
+    const colRes = await client.query(
+        "SELECT column_name FROM information_schema.columns WHERE table_name = 'student'"
+    );
+    console.log("Student columns:", colRes.rows.map(c => c.column_name));
 
   } catch (error) {
     console.error("Connection failed:", error.message);
   } finally {
-    if (connection) await connection.end();
+    await client.end();
   }
 }
 

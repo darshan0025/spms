@@ -25,7 +25,7 @@ export async function POST(req: Request) {
         await connection.beginTransaction();
 
         const [result]: any = await connection.query(
-            "INSERT INTO student (student_name, email, phone, department_id, academic_year_id) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO student (student_name, email, phone, department_id, academic_year_id) VALUES (?, ?, ?, ?, ?) RETURNING student_id",
             [student_name, email, phone, department_id, academic_year_id]
         );
 

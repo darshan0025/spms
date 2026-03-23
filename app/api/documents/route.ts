@@ -30,7 +30,7 @@ export async function GET(req: Request) {
                      LEFT JOIN login l ON d.uploaded_by = l.login_id
                      LEFT JOIN student s ON l.student_id = s.student_id
                      LEFT JOIN staff st ON l.staff_id = st.staff_id
-                     WHERE d.project_group_id IN (?) OR d.uploaded_by = ?
+                     WHERE d.project_group_id = ANY(?) OR d.uploaded_by = ?
                      ORDER BY d.created_at DESC`,
                     [groupIds, login_id]
                 ) as any;
@@ -63,7 +63,7 @@ export async function GET(req: Request) {
                      LEFT JOIN login l ON d.uploaded_by = l.login_id
                      LEFT JOIN student s ON l.student_id = s.student_id
                      LEFT JOIN staff st ON l.staff_id = st.staff_id
-                     WHERE d.project_group_id IN (?) OR d.uploaded_by = ?
+                     WHERE d.project_group_id = ANY(?) OR d.uploaded_by = ?
                      ORDER BY d.created_at DESC`,
                     [groupIds, login_id]
                 ) as any;
@@ -119,7 +119,7 @@ export async function POST(req: Request) {
 
         await db.query(
             `INSERT INTO documents (file_name, file_url, file_id, file_type, file_size, uploaded_by, uploader_role, description, project_group_id)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING doc_id`,
             [fileName, fileUrl, fileId, fileType || null, fileSize || null, login_id, role, description || null, project_group_id || null]
         );
 

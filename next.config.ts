@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["imagekit", "mysql2", "bcryptjs"],
+  serverExternalPackages: ["imagekit", "pg", "bcryptjs"],
 };
 
 export default nextConfig;

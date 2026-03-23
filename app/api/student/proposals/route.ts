@@ -43,7 +43,7 @@ export async function POST(req: Request) {
         const project_group_id = memberRows[0].project_group_id;
 
         await db.query(
-            "INSERT INTO project_proposal (project_group_id, proposal_title, proposal_description) VALUES (?, ?, ?)",
+            "INSERT INTO project_proposal (project_group_id, proposal_title, proposal_description) VALUES (?, ?, ?) RETURNING proposal_id",
             [project_group_id, proposal_title, proposal_description]
         );
 

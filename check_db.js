@@ -1,27 +1,40 @@
-const mysql = require('mysql2/promise');
+const { Client } = require('pg');
+const fs = require('fs');
+const path = require('path');
 
-const dbConfig = {
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'spms_db'
-};
+// Basic .env.local parser
+const envPath = path.resolve(__dirname, '.env.local');
+const envData = fs.readFileSync(envPath, 'utf8');
+const databaseUrlMatch = envData.match(/^DATABASE_URL=(.*)$/m);
+const databaseUrl = databaseUrlMatch ? databaseUrlMatch[1].trim() : null;
 
 async function checkColumns() {
-    let connection;
-    try {
-        connection = await mysql.createConnection(dbConfig);
-        const [staffColumns] = await connection.query("SHOW COLUMNS FROM staff");
-        const [studentColumns] = await connection.query("SHOW COLUMNS FROM student");
-        const [memberColumns] = await connection.query("SHOW COLUMNS FROM project_group_member");
+    if (!databaseUrl) {
+        console.error("DATABASE_URL not found in .env.local");
+        return;
+    }
 
-        console.log("Staff Columns:", staffColumns.map(c => c.Field));
-        console.log("Student Columns:", studentColumns.map(c => c.Field));
-        console.log("Member Columns:", memberColumns.map(c => c.Field));
+    const client = new Client({
+        connectionString: databaseUrl,
+        ssl: { rejectUnauthorized: false }
+    });
+
+    try {
+        await client.connect();
+        
+        const tables = ['staff', 'student', 'project_group_member'];
+        for (const table of tables) {
+            const res = await client.query(
+                "SELECT column_name FROM information_schema.columns WHERE table_name = $1",
+                [table]
+            );
+            console.log(`${table.charAt(0).toUpperCase() + table.slice(1)} Columns:`, res.rows.map(r => r.column_name));
+        }
+
     } catch (error) {
         console.error("Error:", error);
     } finally {
-        if (connection) await connection.end();
+        await client.end();
     }
 }
 

@@ -7,8 +7,8 @@ export async function POST(req: Request) {
   await db.query(
     `INSERT INTO meeting_attendance
      (meeting_id, student_id, is_present)
-     VALUES (?, ?, ?)`,
-    [meeting_id, student_id, is_present]
+     VALUES (?, ?, ?) RETURNING attendance_id`,
+    [meeting_id, student_id, is_present ? true : false]
   );
 
   return NextResponse.json({ message: "Attendance Marked" });

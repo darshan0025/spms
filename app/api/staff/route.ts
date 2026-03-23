@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     const { staff_name, email, username, password, department_id } = await req.json();
 
     const [result]: any = await db.query(
-      "INSERT INTO staff (staff_name, email, department_id) VALUES (?, ?, ?)",
+      "INSERT INTO staff (staff_name, email, department_id) VALUES (?, ?, ?) RETURNING staff_id",
       [staff_name, email, department_id || null]
     );
 

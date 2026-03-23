@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     } else {
         // Insert new
         await db.query(
-            "INSERT INTO project_evaluation (project_group_id, staff_id, marks, feedback) VALUES (?, ?, ?, ?)",
+            "INSERT INTO project_evaluation (project_group_id, staff_id, marks, feedback) VALUES (?, ?, ?, ?) RETURNING evaluation_id",
             [project_group_id, staff_id, marks, feedback]
         );
     }
