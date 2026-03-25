@@ -56,8 +56,7 @@ export async function POST(req: Request) {
             for (const r of attendance_records) {
                 await db.query(
                     `INSERT INTO meeting_attendance (meeting_id, student_id, is_present, remarks) 
-                     VALUES (?, ?, ?, ?)
-                     ON CONFLICT (meeting_id, student_id) DO UPDATE SET is_present = EXCLUDED.is_present, remarks = EXCLUDED.remarks`,
+                     VALUES (?, ?, ?, ?)`,
                     [meeting_id, r.student_id, !!r.is_present, r.remarks || null]
                 );
             }

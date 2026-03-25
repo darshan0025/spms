@@ -27,7 +27,7 @@ export async function GET(req: Request) {
             WHERE pgm.student_id = ?
         `, [student_id]);
 
-        if (!groups.length) {
+        if (!groups || !groups.length) {
             return NextResponse.json({ groups: [] });
         }
 
@@ -44,7 +44,7 @@ export async function GET(req: Request) {
                 s.phone
             FROM project_group_member pgm
             JOIN student s ON pgm.student_id = s.student_id
-            WHERE pgm.project_group_id IN (?)
+            WHERE pgm.project_group_id = ANY(?)
         `, [groupIds]);
 
         // Attach members to each group

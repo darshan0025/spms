@@ -12,16 +12,24 @@ export default function StaffStudentsPage() {
     async function loadStudents() {
         try {
             const userRaw = localStorage.getItem("user");
-            if (!userRaw) return;
+            if (!userRaw) {
+                console.error("No user found in localStorage");
+                return;
+            }
             const user = JSON.parse(userRaw);
+            console.log("Loading students for staff user:", user);
 
             const res = await fetch(`/api/staff/students?staff_id=${user.staff_id}`);
             if (res.ok) {
                 const data = await res.json();
+                console.log(`Fetched ${data.length} students`);
                 setStudents(data);
+            } else {
+                const errorData = await res.json();
+                console.error("Error fetching students:", errorData);
             }
         } catch (error) {
-            console.error(error);
+            console.error("Fetch error:", error);
         } finally {
             setLoading(false);
         }

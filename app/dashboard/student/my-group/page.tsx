@@ -13,6 +13,8 @@ export default function MyGroupPage() {
         if (userStr) {
             try {
                 const user = JSON.parse(userStr);
+                console.log("MyGroupPage: User from localStorage:", user);
+                console.log("MyGroupPage: Fetching for student_id:", user.student_id);
                 fetch(`/api/student/my-group?student_id=${user.student_id}`)
                     .then(res => res.json())
                     .then(data => {
